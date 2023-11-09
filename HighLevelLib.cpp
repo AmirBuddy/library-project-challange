@@ -3,6 +3,8 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <random>
+#include <iomanip>
 using namespace std;
 
 /**
@@ -261,6 +263,33 @@ Client* login() {
 }
 
 /**
+ * The function generates a random UUID (Universally Unique Identifier) string with hyphens inserted at
+ * the appropriate positions.
+ * 
+ * @return The function `generateUUID()` returns a string that represents a randomly generated UUID
+ * (Universally Unique Identifier).
+ */
+string generateUUID() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 15);
+
+    ostringstream oss;
+    for (int i = 0; i < 32; ++i) {
+        int randomValue = dis(gen);
+
+        // Insert hyphens at the appropriate positions
+        if (i == 8 || i == 12 || i == 16 || i == 20) {
+            oss << '-';
+        }
+
+        oss << hex << randomValue;
+    }
+
+    return oss.str();
+}
+
+/**
  * The signup function allows a user to enter their name, password, and phone number, generates a
  * random ID, creates a new Client object with the entered information and generated ID, saves the new
  * client information to a file, and displays the generated ID to the user.
@@ -276,13 +305,7 @@ void signup() {
     cout << ">>> ";
     getline(cin, password);
 
-    // generate a random 10-digit ID that starts with "2"
-    srand(time(nullptr)); // seed the random number generator
-    id = "2"; // ensure the ID starts with "2"
-    for (int i = 0; i < 9; i++) {
-        int digit = rand() % 10;
-        id += to_string(digit);
-    }
+    id = generateUUID();
 
     cout << "Enter your phone number:" << endl;
     cout << ">>> ";
