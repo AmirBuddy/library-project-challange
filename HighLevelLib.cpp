@@ -5,6 +5,8 @@
 #include <vector>
 #include <random>
 #include <iomanip>
+#include <functional>
+
 using namespace std;
 
 /**
@@ -16,6 +18,22 @@ void clearScreen() {
     #else
     system("clear");
     #endif
+}
+
+/**
+ * The function "input" takes a message as input and prompts the user to enter a string, which is then
+ * stored in the variable "inp".
+ * 
+ * @param msg The `msg` parameter is a string that represents the message or prompt that will be
+ * displayed to the user before taking input. It is used to provide context or instructions to the user
+ * about what kind of input is expected.
+ * @param inp The parameter "inp" is a reference to a string. This means that any changes made to the
+ * string inside the function will also affect the original string that was passed as an argument.
+ */
+void input(const string msg, string& inp) {
+    cout << msg << endl;
+    cout << ">>> ";
+    getline(cin, inp);
 }
 
 /* The Savable class is an abstract base class that provides methods for converting an object to a
@@ -39,10 +57,10 @@ public:
     Person(const Person& other) : name_(other.name_), password_(other.password_) {}
 
     string get_name() const { return name_; }
-    string get_pass() const { return password_; }
+    string get_password() const { return password_; }
 
     void set_name(string name) {  name_ = name; }
-    void set_pass(string pass) {  password_ = pass; }
+    void set_password(string pass) {  password_ = pass; }
 
     virtual void assign(const Person& other) {
         name_ = other.name_;
@@ -181,12 +199,15 @@ vector<Client> Client::clients = {};
 /* The MenuItem class represents a menu item with a title and an associated action. */
 class MenuItem {
 private:
-    using Action = void (*)(); 
+    // using Action = void (*)(); 
+    // void (*action_)();
+    using Action = std::function<void()>;
     string title_;
-    void (*action_)();
+    Action action_;
 
 public:
-    MenuItem(const string& title, void (*action)()) : title_(title), action_(action) {}
+    // MenuItem(const string& title, void (*action)()) : title_(title), action_(action) {}
+    MenuItem(const string& title, Action action) : title_(title), action_(action) {}
 
     string get_title() const { return title_; }
     void execute() { action_(); }
@@ -248,16 +269,12 @@ public:
  */
 Client* login() {
     string id, password;
-    cout << "Enter your ID:" << endl;
-    cout << ">>> ";
-    getline(cin, id);
 
-    cout << "Enter your password:" << endl;
-    cout << ">>> ";
-    getline(cin, password);
+    input("Enter your ID:", id);
+    input("Enter your password:", password);
 
     for (auto& client : Client::clients) 
-        if (client.get_id() == id && client.get_pass() == password)
+        if (client.get_id() == id && client.get_password() == password)
             return &client;
     return nullptr;
 }
@@ -297,43 +314,42 @@ string generateUUID() {
 void signup() {
     string name, password, id, phone_number;
 
-    cout << "Enter your name:" << endl;
-    cout << ">>> ";
-    getline(cin, name);
-
-    cout << "Enter your password:" << endl;
-    cout << ">>> ";
-    getline(cin, password);
-
+    input("Enter your name:", name);
+    input("Enter your password:", password);
+    input("Enter your phone number:", phone_number);
+    
     id = generateUUID();
 
-    cout << "Enter your phone number:" << endl;
-    cout << ">>> ";
-    getline(cin, phone_number);
-
-    // create a new Client object with the entered info and generated ID
     Client new_client(name, password, id, phone_number, {});
-    Client::clients.push_back(new_client);
-
-    // save the new client info to a file (e.g., clients.txt)
-    new_client.save("clients.txt");
-
     cout << "Successfully signed up! Your ID is: " << id << endl;
+    
+    Client::clients.push_back(new_client);
 }
 
 /* The ClientMenu class is a subclass of the Menu class and provides a menu for clients with an option
 to edit their information. */
 class ClientMenu : public Menu {
 private:
-    string call_back() override { return "Exit"; }
+    string call_back() override { return "Back"; }
 public:
     ClientMenu(Client* cl) : Menu("**** Client Menu ****") {
-        add_item(new MenuItem("Edit Info", []() {
-            cout << "Are you sure?(y/n)" << endl;
-            cout << ">>> ";
-            char ch; cin >> ch; cin.ignore();
-            if (ch == 'y' || ch == 'Y') {
-                //TODO
+        add_item(new MenuItem("Edit Info", [&]() {
+            string ch;
+            input("Are you sure?(y/n)", ch);
+            if (ch == "y" || ch == "Y") {
+                string newName;
+                string newPassword;
+                string newPhoneNumber;
+                
+                input("Enter new name:", newName);
+                input("Enter new password:", newPassword);
+                input("Enter new phone number:", newPhoneNumber);
+                
+                cl->set_name(newName);
+                cl->set_password(newPassword);
+                cl->set_phone_number(newPhoneNumber);
+                
+                cout << "Client information updated successfully!" << endl;
             }
         }));
     }
@@ -346,13 +362,9 @@ private:
     string call_back() override { return "Back"; }
 public:
     LoginMenu() : Menu("**** Login Menu ****") {
-        add_item(new MenuItem("Admin", []() {
-            //TODO: Admin login functionality
-        }));
         add_item(new MenuItem("Client", []() {
             Client* cl = login();
-            if (!cl) {
-                clearScreen();
+            if (cl) {
                 ClientMenu client_menu(cl);
                 client_menu.run();
             }
@@ -371,20 +383,12 @@ private:
 public:
     MainMenu() : Menu("**** Main Menu ****") {
         add_item(new MenuItem("Login", []() {
-            clearScreen();
             LoginMenu login_menu;
             login_menu.run();
         }));
         add_item(new MenuItem("Signup", []() {
-            clearScreen();
             signup();
         }));
-        // add_item(new MenuItem("Test Load", []() {
-        //     for (auto &client : Client::clients) {
-        //         client.display_info();
-        //         cout << "===========================================" << endl;
-        //     }
-        // }));
     }
 };
 
