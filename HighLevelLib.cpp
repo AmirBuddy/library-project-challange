@@ -356,17 +356,17 @@ public:
             clearScreen();
             signup();
         }));
-        add_item(new MenuItem("Test Load", []() {
-            for (auto &client : Client::clients) {
-                client.display_info();
-                cout << "===========================================" << endl;
-            }
-        }));
+        // add_item(new MenuItem("Test Load", []() {
+        //     for (auto &client : Client::clients) {
+        //         client.display_info();
+        //         cout << "===========================================" << endl;
+        //     }
+        // }));
     }
 };
 
 int main(int argc, char** argv) {
-    Client::ClientLoader::load("clients.txt");
+    // Client::ClientLoader::load("clients.txt");
     MainMenu main_menu;
     main_menu.run();
     return 0;
