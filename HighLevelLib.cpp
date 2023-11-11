@@ -333,6 +333,9 @@ private:
     string call_back() override { return "Back"; }
 public:
     ClientMenu(Client* cl) : Menu("**** Client Menu ****") {
+        add_item(new MenuItem("Display Info", [&]() {
+            cl->display_info();
+        }));
         add_item(new MenuItem("Edit Info", [&]() {
             string ch;
             input("Are you sure?(y/n)", ch);
