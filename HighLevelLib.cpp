@@ -337,6 +337,7 @@ public:
             cl->display_info();
         }));
         add_item(new MenuItem("Edit Info", [&]() {
+            // TODO: Should make it more detailed and functional 
             string ch;
             input("Are you sure?(y/n)", ch);
             if (ch == "y" || ch == "Y") {
